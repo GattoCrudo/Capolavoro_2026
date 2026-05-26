@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=2.0" />
+    <title>drumrm: Drum Remover</title>
+
+    <style>
+        a {
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button, input {
+            cursor: pointer !important;
+        }
+
+        #input {
+            padding: 8px;
+            top: 0px;
+            position: sticky;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="input">
+        <form action="/" method="POST" enctype="multipart/form-data" id="sendForm">
+            <input type="file" id="file" name="file" required value="Seleziona Brano" />
+            <input type="submit" value="Invia" />
+        </form>
+        
+        <div id="loading"></div>
+        <!-- <hr> -->
+    </div>
+    
+    <a id="updateBtn">🔄</a>
+    
+    
+    
+    <div id="fileDownloads"></div>
+
+
+    <script>
+        const updateBtn = document.getElementById("updateBtn");
+        const fileDownloads = document.getElementById("fileDownloads");
+        const sendForm = document.getElementById("sendForm");
+        const loading = document.getElementById("loading");
+
+        // invio di nuovo file al server
+        sendForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(sendForm);
+
+            fetch("/", {
+                method: "POST",
+                body: formData,
+            });
+
+            loading.innerText = "LOADING";
+        });
+
+        // aggiorna lista di file da scaricare
+        const updateFunc = async (e) => {
+            const files = await ((await fetch("/update")).json());
+            fileDownloads.innerHTML = "";
+
+            files.forEach((file) => {
+                const newFileDiv = document.createElement(`div`);
+                newFileDiv.innerHTML += `<a href="/${file}">⬇️</a> ${file}`;
+
+                fileDownloads.appendChild(newFileDiv);
+            });
+
+            loading.innerText = "";
+
+            return files;
+        };
+        updateBtn.addEventListener("click", updateFunc);
+
+        // aggiorna pagina al caricamento e ogni 15 secondi
+        updateFunc();
+        window.setInterval(async () => {
+            updateFunc();
+        }, 15000);
+    </script>
+</body>
+
+</html>
